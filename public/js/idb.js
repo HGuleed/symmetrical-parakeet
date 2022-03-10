@@ -26,3 +26,38 @@ function saveRecord(record) {
 
   expenseObjectStore.add(record);
 }
+
+function uploadExpense() {
+  const transaction = db.transaction.objectStore(["new_expense"], "readwrite");
+  const expenseObjectStore = transaction.objectStore("new_expense");
+  const getAll = expenseObjectStore.getAll();
+
+  getAll.onsuccess = function () {
+    if (getAll.result.length > 0) {
+      fetch("/api/expense", {
+        method: "POST",
+        body: JSON.stringify(getAll.result),
+        headers: {
+          Accept: "application/json, text/plain, */*",
+          "Content-Type": "application/json",
+        },
+      })
+        .then((res) => res.json())
+        .then((serverResponse) => {
+          if (serverResponse.message) {
+            throw new Error(serverResponse);
+          }
+
+          const transaction = db.transaction(["new_expense"], "readwrite");
+          const expenseObjectStore = transaction.objectStore("new_expense");
+
+          expenseObjectStore.clear();
+        })
+        .catch((err) => {
+          console.log(err);
+        });
+    }
+  };
+}
+
+window.addEventListener("online", uploadPizza);
