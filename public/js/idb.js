@@ -4,7 +4,7 @@ const request = indexedDB.open("budget_tracker", 1);
 
 request.onupgradeneeded = function (e) {
   const db = e.target.result;
-  db.createObjectStore("new_expense", { autoIncrement: true });
+  db.createObjectStore("newExpense", { autoIncrement: true });
 };
 
 request.onsuccess = function (event) {
@@ -20,21 +20,23 @@ request.onerror = function (event) {
 };
 
 function saveRecord(record) {
-  const transaction = db.transaction(["new_expense"], "readwrite");
+  const transaction = db.transaction(["newExpense"], "readwrite");
 
-  const expenseObjectStore = transaction.objectStore("new_expense");
+  const expenseObjectStore = transaction.objectStore("newExpense");
 
   expenseObjectStore.add(record);
 }
 
 function uploadExpense() {
-  const transaction = db.transaction.objectStore(["new_expense"], "readwrite");
-  const expenseObjectStore = transaction.objectStore("new_expense");
+  //   debugger;
+  console.log(db.transaction);
+  const transaction = db.transaction(["newExpense"], "readwrite");
+  const expenseObjectStore = transaction.objectStore("newExpense");
   const getAll = expenseObjectStore.getAll();
 
   getAll.onsuccess = function () {
     if (getAll.result.length > 0) {
-      fetch("/api/expense", {
+      fetch("/api/transaction/bulk", {
         method: "POST",
         body: JSON.stringify(getAll.result),
         headers: {
@@ -48,8 +50,8 @@ function uploadExpense() {
             throw new Error(serverResponse);
           }
 
-          const transaction = db.transaction(["new_expense"], "readwrite");
-          const expenseObjectStore = transaction.objectStore("new_expense");
+          const transaction = db.transaction(["newExpense"], "readwrite");
+          const expenseObjectStore = transaction.objectStore("newExpense");
 
           expenseObjectStore.clear();
         })
@@ -60,4 +62,4 @@ function uploadExpense() {
   };
 }
 
-window.addEventListener("online", uploadPizza);
+window.addEventListener("online", uploadExpense);
